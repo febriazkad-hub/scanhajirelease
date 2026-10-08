@@ -1,0 +1,71 @@
+name: Verify public update assets
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/verify-release.yml']
+  release:
+    types: [published]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: public-update-verification
+  cancel-in-progress: false
+jobs:
+  verify-public-downloads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify anonymous feed, package hashes and portable layout
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+        shell: python
+        run: |
+          import hashlib, io, json, os, re, urllib.request, zipfile
+          repo = os.environ["RELEASE_REPOSITORY"]
+          tag = os.environ.get("RELEASE_TAG", "")
+          headers = {"User-Agent": "ScanHaji-public-update-check", "Accept": "application/vnd.github+json"}
+          # Deliberately use no Authorization header: clients access the public feed anonymously.
+          def read(url):
+              with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60) as response:
+                  return response.read()
+          endpoint = "https://api.github.com/repos/" + repo + "/releases/" + ("tags/" + tag if tag else "latest")
+          release = json.loads(read(endpoint))
+          if release["draft"] or release["prerelease"]:
+              print("Skip draft/prerelease: stable clients do not use it.")
+              raise SystemExit(0)
+          version = release["tag_name"].removeprefix("v")
+          assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version), "Stable release version invalid"
+          assets = {a["name"]: a for a in release["assets"]}
+          def download(name):
+              asset = assets[name]
+              assert asset["state"] == "uploaded" and asset["size"] > 0, "Asset upload incomplete"
+              blob = read(asset["browser_download_url"])
+              assert len(blob) == asset["size"], "Published asset size mismatch: " + name
+              digest = "sha256:" + hashlib.sha256(blob).hexdigest()
+              assert digest == asset["digest"], "Published asset digest mismatch: " + name
+              print("PUBLIC DOWNLOAD PASS:", name, "size and SHA-256")
+              return blob
+          feed = json.loads(download("releases.win.json"))
+          full = [a for a in feed["Assets"] if a["PackageId"] == "ScanHaji" and a["Version"] == version and a["Type"] == "Full"]
+          assert len(full) == 1, "Stable full update missing or ambiguous in feed"
+          asset = full[0]
+          filename = asset["FileName"]
+          assert filename == "ScanHaji-" + version + "-full.nupkg", "Unexpected package filename"
+          package = download(filename)
+          assert len(package) == asset["Size"], "Feed package size mismatch"
+          assert hashlib.sha256(package).hexdigest().lower() == asset["SHA256"].lower(), "Feed package SHA-256 mismatch"
+          assert zipfile.ZipFile(io.BytesIO(package)).testzip() is None, "Corrupt update archive"
+          portable = download("ScanHaji-win-Portable.zip")
+          with zipfile.ZipFile(io.BytesIO(portable)) as archive:
+              names = archive.namelist()
+              assert archive.testzip() is None, "Corrupt portable archive"
+              for required in ("ScanHaji.exe", "Update.exe", ".portable", "current/Scan Paspor Haji Pandeglang.exe"):
+                  assert required in names, "Portable component missing: " + required
+              for name in names:
+                  parts = name.replace("\\", "/").split("/")
+                  basename = parts[-1].lower()
+                  assert "data" not in [p.lower() for p in parts], "Runtime data in public archive"
+                  assert basename != "settings.json" and not basename.startswith("settings.json."), "User settings in public archive"
+          print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
