@@ -22,7 +22,7 @@ jobs:
           RELEASE_REPOSITORY: ${{ github.repository }}
         shell: python
         run: |
-          import hashlib, io, json, os, re, urllib.request, zipfile
+          import hashlib, io, json, os, re, struct, urllib.request, zipfile
           repo = os.environ["RELEASE_REPOSITORY"]
           tag = os.environ.get("RELEASE_TAG", "")
           headers = {"User-Agent": "ScanHaji-public-update-check", "Accept": "application/vnd.github+json"}
@@ -68,4 +68,18 @@ jobs:
                   basename = parts[-1].lower()
                   assert "data" not in [p.lower() for p in parts], "Runtime data in public archive"
                   assert basename != "settings.json" and not basename.startswith("settings.json."), "User settings in public archive"
+              if tuple(map(int, version.split("."))) >= (2, 3, 0):
+                  info = json.loads(archive.read("current/build-info.json"))
+                  assert info["RequiresInstalledDotNet"] is False, "Installed runtime prerequisite in portable build"
+                  assert info["RuntimeIdentifier"] == "win-x86", "Unexpected runtime architecture"
+                  assert info["Version"] == version + ".0", "Build version disagrees with release"
+                  assert not any(n.lower().endswith(".dll") for n in names), "Unbundled DLL in portable archive"
+                  assert "current/TEST-PORTABLE.md" in names, "Portable PC test guide missing"
+                  for binary in ("ScanHaji.exe", "Update.exe", "current/Scan Paspor Haji Pandeglang.exe"):
+                      data = archive.read(binary)
+                      assert data[:2] == b"MZ", "Invalid executable: " + binary
+                      offset = struct.unpack_from("<I", data, 0x3c)[0]
+                      assert data[offset:offset+4] == b"PE\\0\\0", "Invalid PE header: " + binary
+                      assert struct.unpack_from("<H", data, offset+4)[0] == 0x14c, "Non-x86 executable in x86 package: " + binary
+                  print("SELF-CONTAINED PACKAGE PASS: runtime included, no loose DLLs, app/launcher/updater x86, test guide included")
           print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
