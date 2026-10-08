@@ -4,7 +4,7 @@ Aplikasi portable untuk scan paspor dan impor data jemaah SISKOHAT.
 
 Repo distribusi resmi: https://github.com/febriazkad-hub/scanhajirelease
 
-**Status: rilis pertama belum diterbitkan.** Tautan unduhan tersedia setelah paket selesai diuji dan dipublikasikan.
+**Rilis stabil pertama v2.2.0 sudah tersedia.** [Buka rilis terbaru](https://github.com/febriazkad-hub/scanhajirelease/releases/latest).
 
 Unduh **ScanHaji-win-Portable.zip** dari rilis stabil terbaru, ekstrak seluruh isinya ke folder yang dapat ditulis, lalu jalankan **ScanHaji.exe**. Windows memerlukan .NET Framework 4.8.
 
