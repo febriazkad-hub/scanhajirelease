@@ -79,7 +79,7 @@ jobs:
                       data = archive.read(binary)
                       assert data[:2] == b"MZ", "Invalid executable: " + binary
                       offset = struct.unpack_from("<I", data, 0x3c)[0]
-                      assert data[offset:offset+4] == b"PE\\0\\0", "Invalid PE header: " + binary
+                      assert data[offset:offset+4] == bytes((80, 69, 0, 0)), "Invalid PE header: " + binary
                       assert struct.unpack_from("<H", data, offset+4)[0] == 0x14c, "Non-x86 executable in x86 package: " + binary
                   print("SELF-CONTAINED PACKAGE PASS: runtime included, no loose DLLs, app/launcher/updater x86, test guide included")
           print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
