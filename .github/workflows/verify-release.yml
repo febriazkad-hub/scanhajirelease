@@ -23,6 +23,7 @@ jobs:
         shell: python
         run: |
           import hashlib, io, json, os, re, struct, urllib.request, zipfile
+          import xml.etree.ElementTree as ET
           repo = os.environ["RELEASE_REPOSITORY"]
           tag = os.environ.get("RELEASE_TAG", "")
           headers = {"User-Agent": "ScanHaji-public-update-check", "Accept": "application/vnd.github+json"}
@@ -81,15 +82,16 @@ jobs:
                   assert info["Version"] == version + ".0", "Build version disagrees with release"
                   assert not any(n.lower().endswith(".dll") for n in names), "Unbundled DLL in portable archive"
                   assert "current/TEST-PORTABLE.md" in names, "Portable PC test guide missing"
-                  for binary in ("ScanHaji.exe", "Update.exe", "current/Scan Paspor Haji Pandeglang.exe"):
+                  for binary in ("ScanHaji.exe", "Update.exe", "current/Scan Paspor Haji Pandeglang.exe") + (("current/ScanHaji.Start.exe",) if lightweight else ()):
                       data = archive.read(binary)
                       assert data[:2] == b"MZ", "Invalid executable: " + binary
                       offset = struct.unpack_from("<I", data, 0x3c)[0]
                       assert data[offset:offset+4] == bytes((80, 69, 0, 0)), "Invalid PE header: " + binary
                       assert struct.unpack_from("<H", data, offset+4)[0] == 0x14c, "Non-x86 executable in x86 package: " + binary
                   if lightweight:
-                      manifest = archive.read("current/sq.version").decode("utf-8")
-                      assert re.search(r"net10\.0(?:\.0)?-x86-desktop", manifest), "Updater runtime dependency missing: " + manifest
-                      assert "ScanHaji.Start.exe" in manifest, "Updater does not launch runtime guide"
+                      manifest = ET.fromstring(archive.read("current/sq.version"))
+                      dependency = manifest.findtext(".//{*}runtimeDependencies", "")
+                      assert dependency in ("net10-x86-desktop", "net10.0-x86-desktop", "net10.0.0-x86-desktop"), "Updater runtime dependency invalid: " + dependency
+                      assert manifest.findtext(".//{*}mainExe") == "ScanHaji.Start.exe", "Updater does not launch runtime guide"
                   print("PORTABLE PACKAGE PASS: expected runtime mode, no loose DLLs, app/launcher/updater x86, guide included")
           print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
