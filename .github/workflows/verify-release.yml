@@ -89,7 +89,7 @@ jobs:
                       assert struct.unpack_from("<H", data, offset+4)[0] == 0x14c, "Non-x86 executable in x86 package: " + binary
                   if lightweight:
                       manifest = archive.read("current/sq.version").decode("utf-8")
-                      assert "net10.0-x86-desktop" in manifest, "Updater runtime dependency missing"
+                      assert re.search(r"net10\.0(?:\.0)?-x86-desktop", manifest), "Updater runtime dependency missing: " + manifest
                       assert "ScanHaji.Start.exe" in manifest, "Updater does not launch runtime guide"
                   print("PORTABLE PACKAGE PASS: expected runtime mode, no loose DLLs, app/launcher/updater x86, guide included")
           print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
