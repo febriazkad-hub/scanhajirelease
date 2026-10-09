@@ -71,10 +71,19 @@ jobs:
                   assert basename != "settings.json" and not basename.startswith("settings.json."), "User settings in public archive"
               if tuple(map(int, version.split("."))) >= (2, 3, 0):
                   info = json.loads(archive.read("current/build-info.json"))
-                  lightweight = tuple(map(int, version.split("."))) >= (2, 4, 0)
+                  parsed_version = tuple(map(int, version.split(".")))
+                  framework48 = parsed_version >= (2, 5, 0)
+                  lightweight = (2, 4, 0) <= parsed_version < (2, 5, 0)
                   assert info["RequiresInstalledDotNet"] is lightweight, "Runtime deployment mode disagrees with release"
+                  if framework48:
+                      assert info["TargetFramework"] == "net48", "Framework target missing"
+                      assert info["RequiresNetFramework"] is True, "Windows Framework requirement missing"
+                      assert info["RuntimeRequirement"] == "net48", "Framework prerequisite missing"
+                      assert "current/Scan Paspor Haji Pandeglang.exe.config" in names, "Framework configuration missing"
+                      assert not any(n.lower().endswith((".runtimeconfig.json", ".deps.json")) for n in names), "Modern runtime configuration in Framework package"
                   if lightweight:
                       assert info["RuntimeRequirement"] == "net10.0-x86-desktop", "Runtime prerequisite missing"
+                  if lightweight or framework48:
                       assert info["RuntimeBootstrap"] == "ScanHaji.Start.exe", "Runtime guide launcher missing"
                       assert "current/ScanHaji.Start.exe" in names, "Bootstrap missing"
                       assert len(portable) < 10 * 1024 * 1024, "Runtime appears to have been bundled"
@@ -82,16 +91,19 @@ jobs:
                   assert info["Version"] == version + ".0", "Build version disagrees with release"
                   assert not any(n.lower().endswith(".dll") for n in names), "Unbundled DLL in portable archive"
                   assert "current/TEST-PORTABLE.md" in names, "Portable PC test guide missing"
-                  for binary in ("ScanHaji.exe", "Update.exe", "current/Scan Paspor Haji Pandeglang.exe") + (("current/ScanHaji.Start.exe",) if lightweight else ()):
+                  for binary in ("ScanHaji.exe", "Update.exe", "current/Scan Paspor Haji Pandeglang.exe") + (("current/ScanHaji.Start.exe",) if lightweight or framework48 else ()):
                       data = archive.read(binary)
                       assert data[:2] == b"MZ", "Invalid executable: " + binary
                       offset = struct.unpack_from("<I", data, 0x3c)[0]
                       assert data[offset:offset+4] == bytes((80, 69, 0, 0)), "Invalid PE header: " + binary
                       assert struct.unpack_from("<H", data, offset+4)[0] == 0x14c, "Non-x86 executable in x86 package: " + binary
-                  if lightweight:
+                  if lightweight or framework48:
                       manifest = ET.fromstring(archive.read("current/sq.version"))
                       dependency = manifest.findtext(".//{*}runtimeDependencies", "")
-                      assert dependency in ("net10-x86-desktop", "net10.0-x86-desktop", "net10.0.0-x86-desktop"), "Updater runtime dependency invalid: " + dependency
+                      if framework48:
+                          assert dependency == "net48", "Updater Framework dependency invalid: " + dependency
+                      else:
+                          assert dependency in ("net10-x86-desktop", "net10.0-x86-desktop", "net10.0.0-x86-desktop"), "Updater runtime dependency invalid: " + dependency
                       assert manifest.findtext(".//{*}mainExe") == "ScanHaji.Start.exe", "Updater does not launch runtime guide"
                   print("PORTABLE PACKAGE PASS: expected runtime mode, no loose DLLs, app/launcher/updater x86, guide included")
           print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
