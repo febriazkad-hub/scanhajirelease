@@ -1,21 +1,22 @@
-# Menguji ScanHaji portable 2.4.0
+# Menguji ScanHaji portable 2.5.0
 
-1. Ekstrak seluruh ZIP dari https://github.com/febriazkad-hub/scanhajirelease/releases/latest ke folder baru dan buka ScanHaji.exe.
-2. Pada PC tanpa .NET Desktop Runtime 10 x86, pastikan pesan Persiapan ScanHaji tampil. Pilih Tidak: aplikasi keluar tanpa mengubah data. Buka lagi, pilih Ya dan unduh Desktop Runtime 10 Windows x86 Installer resmi Microsoft. Pasang lalu buka ScanHaji lagi. Bila offline, pindahkan installer dari PC lain.
-3. Pastikan versi menunjukkan 2.4.0. Matikan internet, impor XLS/XLSX Siskohat melalui Data Jemaah, pilih sheet/tahun, periksa pratinjau dan Terapkan Data. Porsi harus tetap 10 digit termasuk nol depan.
-4. Tutup/buka dan pastikan data/pengaturan tersedia. Tutup lalu salin seluruh folder ke PC lain; runtime PC tujuan diperiksa lagi.
-5. Periksa tampilan pada skala 100% dan 125%.
+1. Unduh ZIP dari https://github.com/febriazkad-hub/scanhajirelease/releases/latest, ekstrak seluruh isi ke folder baru, buka ScanHaji.exe.
+2. Pada Windows 10 mulai 1903 atau Windows 11 dengan Framework bawaan, aplikasi harus terbuka tanpa meminta Desktop Runtime 10. Versi menunjukkan 2.5.0. Jangan menghapus runtime sistem untuk pengujian.
+3. Jika Framework 4.8 belum tersedia pada PC lama, launcher memandu unduhan Microsoft Framework 4.8 Runtime; pilih Tidak untuk membatalkan tanpa mengubah data.
+4. Matikan internet lalu impor XLS/XLSX Siskohat melalui Data Jemaah. Periksa sheet/tahun, porsi 10 digit termasuk nol depan, tanggal dan jumlah baris; Terapkan Data.
+5. Tutup/buka dan pastikan data/pengaturan tetap tersedia. Tutup lalu pindahkan seluruh folder ke PC lain dan ulangi. Data/settings tetap di akar folder.
+6. Periksa biodata, MRZ, tombol scan/impor dan pratinjau pada skala 100%/125% serta ukuran layar kecil.
 
-## Auto-update
+## Auto-update dan upgrade
 
-Pembaruan memerlukan rilis stabil dengan nomor lebih tinggi. Aktifkan internet pada versi lama; setelah judul menunjukkan update siap, tutup dan tunggu pemasangan. Buka lagi lewat ScanHaji.exe, periksa versi, impor, Data/settings dan Backups/updates.
+Aktifkan internet pada versi lama yang dapat berjalan; tunggu update siap lalu tutup. Setelah updater selesai, buka ScanHaji.exe, cek versi, impor dan data/settings. Bandingkan cadangan Backups/updates.
 
-Untuk upgrade 2.2.0/2.3.0, pasang Desktop Runtime 10 x86 lebih dulu. Klien lama menunda pemasangan bila runtime kurang karena update-nya memakai mode silent. Atau pasang ZIP baru manual saat aplikasi tertutup untuk mendapat launcher dengan panduan runtime.
+Versi 2.4.0 yang belum bisa dibuka karena Desktop Runtime 10 tidak terpasang dapat diganti manual dengan ZIP 2.5 saat aplikasi tertutup. Data/settings di akar dipertahankan.
 
-## Pengujian build
+## Bukti pengujian
 
-Windows CI memeriksa launcher yang memakai Framework bawaan: runtime kosong, base runtime tanpa Desktop, versi salah, preview, patch stabil dan instalasi tidak lengkap. CI menampilkan dialog panduan asli dan memilih Tidak secara otomatis untuk memeriksa pembatalan tanpa unduhan.
+CI menjalankan EXE final setelah ILRepack, memastikan target Framework 4.8, mscorlib dan CLR Windows digunakan, tanpa CoreCLR maupun DLL pihak ketiga terpisah. DOTNET_ROOT menunjuk folder kosong dan PATH tanpa SDK saat menjalankan paket. Job impor tidak memasang Desktop Runtime 10 x86.
 
-Runtime x86 untuk CI diunduh dari Microsoft; SHA-512 dan tanda tangan Microsoft diverifikasi sebelum pemasangan. EXE ZIP diuji dengan PATH tanpa SDK. CoreLib harus berasal dari runtime terpasang, sementara ExcelDataReader dan library aplikasi tetap berasal dari bundle tanpa DLL terpisah. CI menguji XLS/XLSX, porsi, tanggal, validasi, persistensi, pindah folder, UI, updater gagal, update native, serta upgrade paket publik 2.2.0 dan 2.3.0 dengan hash data/settings/cadangan sama.
+CI menguji Framework 4.7.2 ditolak, 4.8/4.8.1 diterima, panduan asli dan pembatalan. Pengujian impor/validasi/persistensi/MRZ/UI dan kegagalan updater dipertahankan. Updater native diuji dari paket publik 2.2.0, 2.3.0 dan 2.4.0 ke Framework 4.8, membandingkan hash Data/settings/snapshot dan menjalankan impor setelah update.
 
-Uji ini belum mencakup seluruh kebijakan keamanan PC atau setiap berkas Siskohat asli. Application Control tetap perlu izin penerbit/administrator bila memblokir berkas.
+Uji ini tidak menjamin semua file Siskohat atau kebijakan PC. Jika muncul 0x800711C7, pengelola Application Control perlu memeriksa berkas yang ditolak.

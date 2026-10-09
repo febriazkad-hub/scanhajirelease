@@ -1,25 +1,21 @@
-# ScanHaji 2.4.0 portable ringan
+# ScanHaji 2.5.0 portable .NET Framework 4.8
 
-Ekstrak seluruh isi ZIP rilis ke folder yang dapat ditulis. Jalankan **ScanHaji.exe** di akar folder. Aplikasi tidak menyertakan runtime .NET 10: dibutuhkan **.NET Desktop Runtime 10 x86** yang dipasang terpisah, cukup sekali per PC. Library impor tetap dibundel; tidak perlu Excel/Office atau DLL tambahan.
+Ekstrak seluruh isi ZIP rilis ke folder yang dapat ditulis, lalu jalankan **ScanHaji.exe** di akar folder.
 
-## Saat runtime belum ada
+Aplikasi menggunakan **.NET Framework 4.8 bawaan Windows**, dan dapat berjalan pada Framework 4.8.1. Pada Windows 10 mulai 1903 dan Windows 11 standar, pengguna tidak perlu memasang .NET Desktop Runtime 10 atau SDK. Library impor digabung ke EXE; tidak memerlukan Excel/Office maupun DLL tambahan.
 
-Launcher kecil memakai .NET Framework bawaan Windows 10/11, sehingga panduan tetap dapat tampil tanpa .NET 10. Pesan **Persiapan ScanHaji** menjelaskan runtime yang kurang. Pilih **Ya** untuk membuka unduhan resmi https://dotnet.microsoft.com/en-us/download/dotnet/10.0, pilih **.NET Desktop Runtime > Windows > x86 > Installer**, lalu jalankan installer Microsoft. Setelah selesai, buka ScanHaji.exe lagi.
+Jika launcher menampilkan **Persiapan ScanHaji**, Framework 4.8 belum terdeteksi. Pilih Ya untuk membuka https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48. Pasang **Runtime**, bukan Developer Pack, lalu restart bila diminta. PC offline dapat memakai installer offline resmi yang diunduh lewat PC lain. Izin administrator mungkin diperlukan pada PC dengan Framework lama.
 
-Runtime x64 saja, .NET Runtime biasa, SDK x64, dan .NET Framework bawaan Windows tidak menggantikan Desktop Runtime x86. Jika PC offline, unduh installer x86 di PC lain dan pindahkan. Bila pemasangan memerlukan izin administrator, pengelola PC perlu menyetujuinya. Menolak panduan tidak mengubah data/settings.
+Impor XLS/XLSX Siskohat dan penyimpanan data berjalan offline. OCR API dan auto-update memerlukan internet. Data Jemaah > pilih file, sheet/tahun > periksa pratinjau > Terapkan Data. Tetap periksa validitas file/kolom dan nomor porsi.
 
-Setelah runtime tersedia, impor XLS/XLSX bekerja tanpa internet. Pilih Data Jemaah, ekspor Siskohat, sheet/tahun dan periksa pratinjau sebelum Terapkan Data. OCR API dan auto-update memerlukan internet.
+Data dan settings.json berada di akar folder portable di luar current. Tutup sebelum memindahkan seluruh folder. Jangan hanya menyalin EXE atau current. Cadangan update tersedia di Backups/updates.
 
-Data dan settings.json disimpan di akar folder di luar current. Tutup aplikasi sebelum menyalin seluruh folder ke PC lain. PC tujuan memerlukan Desktop Runtime x86 juga; launcher memeriksanya kembali. Jangan hanya menyalin EXE.
-
-## Upgrade versi lama
-
-Klien 2.2.0/2.3.0 memakai pemasangan update silent. Bila Desktop Runtime x86 belum terpasang, updater menunda upgrade 2.4.0 dan mempertahankan versi lama. Pasang runtime resmi sekali lalu buka/tutup aplikasi lama lagi, atau ekstrak ZIP 2.4.0 saat aplikasi tertutup dan gunakan launcher baru untuk panduan runtime. Mulai 2.4.0, updater dapat menampilkan prompt pemasangan prasyarat baru sebelum mengganti aplikasi.
+Pengguna 2.2/2.3/2.4 dapat menerima 2.5 melalui auto-update saat versi lamanya dapat berjalan. Jika 2.4 belum dapat dibuka karena Desktop Runtime belum ada, tutup aplikasi dan ekstrak ZIP 2.5 ke folder lama: paket baru menggunakan Framework Windows dan mempertahankan Data/settings di akar.
 
 ## Jika Windows memblokir
 
-0x800711C7 berarti kebijakan Application Control menolak berkas. Runtime terpasang dan launcher tidak memberi izin melewati kebijakan Windows. Paket belum memiliki sertifikat Authenticode penerbit tepercaya.
+0x800711C7 menunjukkan Application Control menolak berkas. Menggabungkan library dan memakai Framework bawaan tidak memberikan izin melewati kebijakan. Aplikasi belum memiliki sertifikat Authenticode penerbit tepercaya.
 
-Pengelola PC dapat memeriksa Event Viewer > Applications and Services Logs > Microsoft > Windows > CodeIntegrity > Operational. Kebijakan publisher membutuhkan sertifikat rilis yang diizinkan atau allow policy organisasi. Run as administrator tidak menggantikan izin kebijakan.
+Pengelola PC dapat memeriksa Event Viewer > Applications and Services Logs > Microsoft > Windows > CodeIntegrity > Operational. Gunakan sertifikat penerbit yang diizinkan atau allow policy organisasi bila diwajibkan. Run as administrator tidak menggantikan izin kebijakan.
 
-Unduh hanya dari https://github.com/febriazkad-hub/scanhajirelease/releases/latest. build-info.json mencatat versi, commit dan kebutuhan runtime; TEST-PORTABLE.md menjelaskan pengujian.
+Unduh hanya dari https://github.com/febriazkad-hub/scanhajirelease/releases/latest. TEST-PORTABLE.md memuat langkah pengujian.
