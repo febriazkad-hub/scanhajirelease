@@ -70,7 +70,13 @@ jobs:
                   assert basename != "settings.json" and not basename.startswith("settings.json."), "User settings in public archive"
               if tuple(map(int, version.split("."))) >= (2, 3, 0):
                   info = json.loads(archive.read("current/build-info.json"))
-                  assert info["RequiresInstalledDotNet"] is False, "Installed runtime prerequisite in portable build"
+                  lightweight = tuple(map(int, version.split("."))) >= (2, 4, 0)
+                  assert info["RequiresInstalledDotNet"] is lightweight, "Runtime deployment mode disagrees with release"
+                  if lightweight:
+                      assert info["RuntimeRequirement"] == "net10.0-x86-desktop", "Runtime prerequisite missing"
+                      assert info["RuntimeBootstrap"] == "ScanHaji.Start.exe", "Runtime guide launcher missing"
+                      assert "current/ScanHaji.Start.exe" in names, "Bootstrap missing"
+                      assert len(portable) < 10 * 1024 * 1024, "Runtime appears to have been bundled"
                   assert info["RuntimeIdentifier"] == "win-x86", "Unexpected runtime architecture"
                   assert info["Version"] == version + ".0", "Build version disagrees with release"
                   assert not any(n.lower().endswith(".dll") for n in names), "Unbundled DLL in portable archive"
@@ -81,5 +87,9 @@ jobs:
                       offset = struct.unpack_from("<I", data, 0x3c)[0]
                       assert data[offset:offset+4] == bytes((80, 69, 0, 0)), "Invalid PE header: " + binary
                       assert struct.unpack_from("<H", data, offset+4)[0] == 0x14c, "Non-x86 executable in x86 package: " + binary
-                  print("SELF-CONTAINED PACKAGE PASS: runtime included, no loose DLLs, app/launcher/updater x86, test guide included")
+                  if lightweight:
+                      manifest = archive.read("current/sq.version").decode("utf-8")
+                      assert "net10.0-x86-desktop" in manifest, "Updater runtime dependency missing"
+                      assert "ScanHaji.Start.exe" in manifest, "Updater does not launch runtime guide"
+                  print("PORTABLE PACKAGE PASS: expected runtime mode, no loose DLLs, app/launcher/updater x86, guide included")
           print("PUBLIC UPDATE PASS:", repo, release["tag_name"], "anonymous feed, matching full package, portable layout and no runtime user data")
