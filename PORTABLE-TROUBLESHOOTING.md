@@ -1,4 +1,4 @@
-# ScanHaji 2.5.0 portable .NET Framework 4.8
+# ScanHaji 2.5.1 portable .NET Framework 4.8
 
 Ekstrak seluruh isi ZIP rilis ke folder yang dapat ditulis, lalu jalankan **ScanHaji.exe** di akar folder.
 
@@ -10,7 +10,7 @@ Impor XLS/XLSX Siskohat dan penyimpanan data berjalan offline. OCR API dan auto-
 
 Data dan settings.json berada di akar folder portable di luar current. Tutup sebelum memindahkan seluruh folder. Jangan hanya menyalin EXE atau current. Cadangan update tersedia di Backups/updates.
 
-Pengguna 2.2/2.3/2.4 dapat menerima 2.5 melalui auto-update saat versi lamanya dapat berjalan. Jika 2.4 belum dapat dibuka karena Desktop Runtime belum ada, tutup aplikasi dan ekstrak ZIP 2.5 ke folder lama: paket baru menggunakan Framework Windows dan mempertahankan Data/settings di akar.
+Pengguna 2.2/2.3/2.4/2.5.0 dapat menerima 2.5.1 melalui auto-update saat versi lamanya dapat berjalan. Jika 2.4 belum dapat dibuka karena Desktop Runtime belum ada, tutup aplikasi dan ekstrak ZIP 2.5.1 ke folder lama: paket baru menggunakan Framework Windows dan mempertahankan Data/settings di akar.
 
 ## Jika Windows memblokir
 
@@ -19,3 +19,4 @@ Pengguna 2.2/2.3/2.4 dapat menerima 2.5 melalui auto-update saat versi lamanya d
 Pengelola PC dapat memeriksa Event Viewer > Applications and Services Logs > Microsoft > Windows > CodeIntegrity > Operational. Gunakan sertifikat penerbit yang diizinkan atau allow policy organisasi bila diwajibkan. Run as administrator tidak menggantikan izin kebijakan.
 
 Unduh hanya dari https://github.com/febriazkad-hub/scanhajirelease/releases/latest. TEST-PORTABLE.md memuat langkah pengujian.
+
